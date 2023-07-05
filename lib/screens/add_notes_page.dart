@@ -53,6 +53,7 @@ class Add_Notes_Page extends StatelessWidget {
                       }).then((value) {
                         print("Notes added");
                       });
+                      Navigator.pop(context);
 
                       },
                       child: Text("Save")))
