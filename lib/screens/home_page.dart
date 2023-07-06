@@ -1,8 +1,9 @@
+
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:online_notes_app/screens/add_notes_page.dart';
-import 'package:online_notes_app/screens/note_card.dart';
-
+import 'package:online_notes_app/screens/edit_note_page.dart';
 import '../ui_helper.dart';
 
 class Home_Page extends StatefulWidget {
@@ -36,24 +37,40 @@ late Stream<QuerySnapshot<Map<String,dynamic>>> futureNotes;
         stream: futureNotes,
         builder: (context, snapshot) {
           if(snapshot.hasData && snapshot.data!= null && snapshot.data!.docs.isNotEmpty ){
-            return GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
+            return ListView.builder(
+              itemCount: snapshot.data!.docs.length,
+              itemBuilder: (context, index) {
+              return ListTile(
+                leading: Text("${index+1}"),
+                title: Text("${snapshot.data!.docs[index]["title"]}",overflow: TextOverflow.ellipsis,maxLines: 2,),
+                subtitle: Text("${snapshot.data!.docs[index]["desc"]}",overflow: TextOverflow.ellipsis,maxLines: 1,),
+                trailing: Container(
+                  width: 80,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
 
-
+                    children: [
+                      // Edit Functoin //
+                      InkWell(
+                          onTap: (){
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => Edit_Note_Page(),));
+                          },
+                          child: Icon(Icons.edit)),
+                      SizedBox(width: 16,),
+                      // delete function //
+                      InkWell(
+                          onTap: (){
+                            Notes.doc(snapshot.data!.docs[index].id).delete().then((value) {print("Note deleted");});
+                          },
+                          child: Icon(Icons.delete,color: Colors.red,)),
+                    ],
+                  ),
                 ),
-                itemCount: snapshot.data!.docs.length  ,
-                itemBuilder: (context, index) {
-                  return InkWell(
-                    onTap: (){},
-                    child: NoteCard(
-                        title: "${snapshot.data!.docs[index].get("title")}",
-                        desc: "${snapshot.data!.docs[index].get("desc")}",
-
-                    ),
-                  );
-                },);
-          }else if(snapshot.hasError) {
+              );
+            },);
+          }else if( snapshot.data!.docs.isEmpty){
+            return Center(child: Text("No Notes yet"));
+          } else if(snapshot.hasError) {
             return Text("Error:${snapshot.error}");
           }else{
             return Container();
